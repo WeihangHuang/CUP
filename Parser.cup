@@ -1,0 +1,191 @@
+/* ----------------------Preliminary Declarations Section--------------------*/
+import java_cup.runtime.*;
+
+/* Parser code to change the way the parser reports errors (include
+   line and column number of the error). */
+parser code {:
+    public boolean syntaxErrors;
+
+    public void syntax_error(Symbol current_token) {
+        report_error(
+            "Syntax error at line " + (current_token.left+1) + ", column "
+            + current_token.right, null
+        );
+    }
+:};
+
+
+
+/* ------------Declaration of Terminals and Non Terminals Section----------- */
+terminal           SEMI, EQ, EQEQ, PLUS, MINUS, TIMES, DIVIDE, IMPLY, CARET, COLON, BAR, ARROW, COMMA, DOT, DOUBLE_EQ, DO, OD;
+terminal           L_ROUND, R_ROUND, L_CURLY, R_CURLY, L_ANGLE, R_ANGLE, L_SQUARE, R_SQUARE, INTERSECTION, DIFFERENCE;
+terminal           L_ANGLE_EQ, R_ANGLE_EQ, AND, OR, NOT, NOT_EQ;
+terminal           INTEGER, BOOLEAN, RATIONAL, FLOAT, CHARACTER, DICT, SEQ, TOP, SET, THREAD;
+terminal           MAIN, IN, READ, PRINT, RETURN, BREAK, CONCAT, TYPEDEF, ALIAS, FUNCTION_DEF;
+terminal           IF, FI, THEN, ELSE, ELIF, WHILE, FORALL;
+terminal           IDENTIFIER, NUMBER, STRING, FUNCTION;
+
+non terminal       program, main, codeblock, identifier, accessor, thread;
+non terminal       type, subtype, dicttype, seqtype, settype;
+non terminal       expression_list, dictvalue, seqvalue, dictitems, seqitems, setvalue, setitems;
+non terminal       expression, operator, comparator, expression_or_null;
+non terminal       declarations, declaration, type_declaration, assignment, tdef, alias;
+non terminal       statements, statement, print, read, break, if_statement, return_statement, while_statement, elif_block, _elif_statement, elif_statement, else_statement, forall_statement;
+non terminal       function, function_call, args, _args, params, _params, _lambda_return, lambda_return, lambda_function;
+
+non terminal       statement_with_break, statements_with_break, elif_block_with_break, _elif_statement_with_break, elif_statement_with_break, else_statement_with_break, if_statement_with_break, codeblock_with_break;
+
+
+/* ------------Precedences----------- */
+precedence left OR, PLUS, MINUS;
+precedence left AND, TIMES, DIVIDE, DIFFERENCE, BAR, INTERSECTION;
+precedence left CONCAT;
+precedence right IN, CARET;
+precedence nonassoc NOT, L_ANGLE, L_ANGLE_EQ, R_ANGLE, R_ANGLE_EQ, EQEQ, NOT_EQ, DOUBLE_EQ;
+precedence nonassoc IMPLY, ARROW;
+
+
+/* ------------Grammar----------- */
+program ::= declarations main;
+
+main ::= MAIN L_CURLY codeblock R_CURLY SEMI;
+
+codeblock ::= declarations statements;
+
+// Identifier
+identifier ::= accessor DOT identifier | accessor;
+accessor ::= IDENTIFIER
+             | IDENTIFIER L_SQUARE expression R_SQUARE
+             | IDENTIFIER L_SQUARE expression_or_null COLON expression_or_null R_SQUARE
+             | IDENTIFIER L_SQUARE expression R_SQUARE L_SQUARE expression_or_null COLON expression_or_null R_SQUARE
+             | IDENTIFIER L_SQUARE expression R_SQUARE L_SQUARE expression R_SQUARE
+             | function_call
+             | function_call L_SQUARE expression R_SQUARE
+             | function_call L_SQUARE expression_or_null COLON expression_or_null R_SQUARE
+             ;
+
+// Types
+type ::= dicttype | seqtype | settype | CHARACTER | INTEGER | RATIONAL | FLOAT | IDENTIFIER | FUNCTION ;
+subtype ::= type | TOP;
+dicttype ::= DICT L_ANGLE subtype COMMA subtype R_ANGLE;
+seqtype ::= SEQ L_ANGLE subtype R_ANGLE;
+settype ::= SET L_ANGLE type R_ANGLE;
+
+// Values
+expression_list ::= expression | expression COMMA expression_list;
+
+dictvalue ::= L_ROUND dictitems R_ROUND | L_ROUND R_ROUND;
+dictitems ::= expression COLON expression
+            | expression COLON expression COMMA dictitems;
+
+seqvalue ::= L_SQUARE seqitems R_SQUARE
+           | L_SQUARE R_SQUARE
+           | STRING;
+seqitems ::= expression | expression COMMA seqitems;
+
+setvalue ::= L_CURLY setitems R_CURLY | L_CURLY R_CURLY;
+setitems ::= expression | expression COMMA setitems;
+
+// Expression
+operator ::= PLUS | MINUS | TIMES | DIVIDE | CARET;
+comparator ::= AND | OR | EQEQ | IMPLY | L_ANGLE | R_ANGLE | L_ANGLE_EQ | R_ANGLE_EQ | NOT_EQ | DOUBLE_EQ | DIFFERENCE | BAR | INTERSECTION;
+
+expression ::= expression operator expression
+             | expression comparator expression
+             | expression CONCAT expression
+             | expression IN expression
+             | NOT expression
+             | L_ROUND expression R_ROUND
+             | dictvalue
+             | seqvalue
+             | setvalue
+             | lambda_function
+             | BOOLEAN
+             | MINUS expression
+             | NUMBER
+             | CHARACTER
+             | identifier
+             | DOUBLE_EQ
+             ;
+
+expression_or_null ::= expression |;
+
+// Declarations
+declarations ::= declarations declaration|;
+declaration ::= type_declaration SEMI
+			  | type_declaration EQ expression_list SEMI
+              | tdef
+              | alias
+              | function
+              | thread
+              ;
+
+type_declaration ::= type IDENTIFIER;
+
+tdef ::= TYPEDEF IDENTIFIER L_CURLY params R_CURLY SEMI;
+alias ::= ALIAS type type SEMI;
+thread ::= THREAD IDENTIFIER EQ L_CURLY codeblock R_CURLY SEMI;
+// Statement
+statements ::= statement statements | statement;
+
+statement ::= if_statement
+            | while_statement
+            | forall_statement
+            | read
+            | print
+            | assignment
+            | return_statement
+            | function_call SEMI
+            ;
+
+assignment ::= identifier EQ expression_list SEMI;
+
+print ::= PRINT expression SEMI;
+read ::= READ identifier SEMI;
+break ::= BREAK SEMI | BREAK NUMBER SEMI;
+return_statement ::= RETURN SEMI | RETURN expression SEMI;
+
+if_statement ::= IF L_ROUND expression R_ROUND THEN codeblock elif_statement else_statement FI;
+elif_block ::= ELIF L_ROUND expression R_ROUND THEN codeblock;
+_elif_statement ::= elif_block | elif_block _elif_statement;
+elif_statement ::= _elif_statement |;
+else_statement ::= ELSE codeblock |;
+while_statement ::= WHILE L_ROUND expression R_ROUND DO codeblock_with_break OD;
+forall_statement ::= FORALL L_ROUND expression IN expression R_ROUND DO codeblock OD;
+
+codeblock_with_break ::= declarations statements_with_break;
+statements_with_break ::= statement_with_break statements_with_break | statement_with_break;
+
+statement_with_break ::= while_statement
+            | break
+            | if_statement_with_break
+            | read
+            | print
+            | assignment
+            | return_statement
+            | function_call SEMI
+            ;
+
+elif_block_with_break ::= ELIF L_ROUND expression R_ROUND THEN codeblock_with_break;
+_elif_statement_with_break ::= elif_block_with_break | elif_block_with_break _elif_statement_with_break;
+elif_statement_with_break ::= _elif_statement_with_break |;
+else_statement_with_break ::= ELSE codeblock_with_break |;
+if_statement_with_break ::= IF L_ROUND expression R_ROUND THEN codeblock_with_break elif_statement_with_break else_statement_with_break FI;
+
+
+// Functions
+_params ::= type_declaration | type_declaration COMMA _params;
+params ::= _params |;
+
+_args ::= expression | expression COMMA _args;
+args ::= _args |;
+
+function_call ::= IDENTIFIER L_ROUND args R_ROUND;
+
+function ::= FUNCTION_DEF type IDENTIFIER L_ROUND params R_ROUND L_CURLY codeblock R_CURLY SEMI
+            | FUNCTION_DEF IDENTIFIER L_ROUND params R_ROUND L_CURLY codeblock R_CURLY SEMI;
+
+_lambda_return ::= BAR expression BAR ARROW;
+lambda_return ::= _lambda_return | _lambda_return lambda_return;
+lambda_function ::= lambda_return L_CURLY return_statement R_CURLY
+                  | lambda_return expression;            
