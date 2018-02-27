@@ -27,13 +27,13 @@ terminal           IDENTIFIER, NUMBER, STRING, FUNCTION;
 
 non terminal       program, main, codeblock, identifier, accessor, thread;
 non terminal       type, subtype, dicttype, seqtype, settype;
-non terminal       expression_list, dictvalue, seqvalue, dictitems, seqitems, setvalue, setitems;
+non terminal       expression_list, dictvalue, seqvalue, setvalue, dictitems, seqitems, setitems;
 non terminal       expression, operator, comparator, expression_or_null;
 non terminal       declarations, declaration, type_declaration, assignment, tdef, alias;
 non terminal       statements, statement, print, read, break, if_statement, return_statement, while_statement, elif_block, _elif_statement, elif_statement, else_statement, forall_statement;
 non terminal       function, function_call, args, _args, params, _params, _lambda_return, lambda_return, lambda_function;
 
-non terminal       statement_with_break, statements_with_break, elif_block_with_break, _elif_statement_with_break, elif_statement_with_break, else_statement_with_break, if_statement_with_break, codeblock_with_break;
+non terminal       statement_with_break, statements_with_break, if_statement_with_break, codeblock_with_break, elif_block_with_break, _elif_statement_with_break, elif_statement_with_break, else_statement_with_break;
 
 
 /* ------------Precedences----------- */
@@ -65,11 +65,11 @@ accessor ::= IDENTIFIER
              ;
 
 // Types
-type ::= dicttype | seqtype | settype | CHARACTER | INTEGER | RATIONAL | FLOAT | IDENTIFIER | FUNCTION ;
+type ::= dicttype | seqtype | settype | CHARACTER | INTEGER | RATIONAL | FLOAT | IDENTIFIER | FUNCTION;
 subtype ::= type | TOP;
 dicttype ::= DICT L_ANGLE subtype COMMA subtype R_ANGLE;
 seqtype ::= SEQ L_ANGLE subtype R_ANGLE;
-settype ::= SET L_ANGLE type R_ANGLE;
+settype ::= SET L_ANGLE type R_ANGLE; 
 
 // Values
 expression_list ::= expression | expression COMMA expression_list;
@@ -99,12 +99,12 @@ expression ::= expression operator expression
              | dictvalue
              | seqvalue
              | setvalue
-             | lambda_function
              | BOOLEAN
              | MINUS expression
              | NUMBER
              | CHARACTER
              | identifier
+             | lambda_function
              | DOUBLE_EQ
              ;
 
@@ -124,13 +124,13 @@ type_declaration ::= type IDENTIFIER;
 
 tdef ::= TYPEDEF IDENTIFIER L_CURLY params R_CURLY SEMI;
 alias ::= ALIAS type type SEMI;
-thread ::= THREAD IDENTIFIER EQ L_CURLY codeblock R_CURLY SEMI;
+
 // Statement
 statements ::= statement statements | statement;
 
-statement ::= if_statement
+statement ::= forall_statement
             | while_statement
-            | forall_statement
+            | if_statement
             | read
             | print
             | assignment
@@ -150,9 +150,11 @@ elif_block ::= ELIF L_ROUND expression R_ROUND THEN codeblock;
 _elif_statement ::= elif_block | elif_block _elif_statement;
 elif_statement ::= _elif_statement |;
 else_statement ::= ELSE codeblock |;
-while_statement ::= WHILE L_ROUND expression R_ROUND DO codeblock_with_break OD;
-forall_statement ::= FORALL L_ROUND expression IN expression R_ROUND DO codeblock OD;
 
+while_statement ::= WHILE L_ROUND expression R_ROUND DO codeblock_with_break OD;
+
+forall_statement ::= FORALL L_ROUND expression IN expression R_ROUND DO codeblock OD;
+              
 codeblock_with_break ::= declarations statements_with_break;
 statements_with_break ::= statement_with_break statements_with_break | statement_with_break;
 
@@ -165,7 +167,6 @@ statement_with_break ::= while_statement
             | return_statement
             | function_call SEMI
             ;
-
 elif_block_with_break ::= ELIF L_ROUND expression R_ROUND THEN codeblock_with_break;
 _elif_statement_with_break ::= elif_block_with_break | elif_block_with_break _elif_statement_with_break;
 elif_statement_with_break ::= _elif_statement_with_break |;
@@ -183,9 +184,14 @@ args ::= _args |;
 function_call ::= IDENTIFIER L_ROUND args R_ROUND;
 
 function ::= FUNCTION_DEF type IDENTIFIER L_ROUND params R_ROUND L_CURLY codeblock R_CURLY SEMI
-            | FUNCTION_DEF IDENTIFIER L_ROUND params R_ROUND L_CURLY codeblock R_CURLY SEMI;
+            | FUNCTION_DEF IDENTIFIER L_ROUND params R_ROUND L_CURLY codeblock R_CURLY SEMI
+            ;
+
 
 _lambda_return ::= BAR expression BAR ARROW;
 lambda_return ::= _lambda_return | _lambda_return lambda_return;
 lambda_function ::= lambda_return L_CURLY return_statement R_CURLY
-                  | lambda_return expression;            
+            | lambda_return expression;
+
+// Threads
+thread ::= THREAD IDENTIFIER EQ L_CURLY codeblock R_CURLY SEMI;

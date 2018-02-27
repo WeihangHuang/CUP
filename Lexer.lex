@@ -59,7 +59,10 @@ String = \"(\\.|[^\"])*\"
     ":"                { return symbol(sym.COLON); }
     "="                { return symbol(sym.EQEQ); }
     "!="               { return symbol(sym.NOT_EQ); }
+    "=="               { return symbol(sym.DOUBLE_EQ); }
+    "&"                { return symbol(sym.INTERSECTION); }
     "&&"               { return symbol(sym.AND); }
+    "|"                { return symbol(sym.BAR); }
     "||"               { return symbol(sym.OR); }
     "!"                { return symbol(sym.NOT); }
     "+"                { return symbol(sym.PLUS); }
@@ -75,18 +78,13 @@ String = \"(\\.|[^\"])*\"
     "=>"               { return symbol(sym.IMPLY); }
     "<="               { return symbol(sym.L_ANGLE_EQ); }
     ">="               { return symbol(sym.R_ANGLE_EQ); }
-    "=="               { return symbol(sym.DOUBLE_EQ); }
+    "->"               { return symbol(sym.ARROW); }
     "<"                { return symbol(sym.L_ANGLE); }
     ">"                { return symbol(sym.R_ANGLE); }
     ","                { return symbol(sym.COMMA); }
     "^"                { return symbol(sym.CARET); }
     "."                { return symbol(sym.DOT); }
-    "|"                { return symbol(sym.BAR); }
-    "->"               { return symbol(sym.ARROW); }
-    "&"                { return symbol(sym.INTERSECTION); }
-    "\\"                { return symbol(sym.DIFFERENCE); }
-
-    //hmm
+    "\\"               { return symbol(sym.DIFFERENCE); }
 
     //Types
     "int"              { return symbol(sym.INTEGER); }
@@ -109,16 +107,17 @@ String = \"(\\.|[^\"])*\"
     "if"               { return symbol(sym.IF); }
     "fi"               { return symbol(sym.FI); }
     "then"             { return symbol(sym.THEN); }
+    "elif"             { return symbol(sym.ELIF); }
     "else"             { return symbol(sym.ELSE); }
     "read"             { return symbol(sym.READ); }
     "print"            { return symbol(sym.PRINT); }
     "return"           { return symbol(sym.RETURN); }
     "break"            { return symbol(sym.BREAK); }
-    "elif"             { return symbol(sym.ELIF); }
+    “while”            { return symbol(sym.WHILE); }
     "do"               { return symbol(sym.DO); }
     "od"               { return symbol(sym.OD); }
-    "while"            { return symbol(sym.WHILE); }
-    "forall"            { return symbol(sym.FORALL); }
+    "forall"           { return symbol(sym.FORALL); }
+
 
     //Literals
     {Boolean}          { return symbol(sym.BOOLEAN); }
